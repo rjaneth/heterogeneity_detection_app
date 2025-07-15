@@ -1,6 +1,6 @@
 # app.R
 # SAR Heterogeneity Detection
-req_pkgs <- c("shiny", "viridisLite", "fields", "png", "shinycssloaders")
+req_pkgs <- c("shiny", "viridisLite", "fields", "png")
 for (pkg in req_pkgs) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     install.packages(pkg)
@@ -103,7 +103,8 @@ ui <- navbarPage("SAR Heterogeneity Detection",
                               width = 3
                             ),
                             mainPanel(
-                              withSpinner(plotOutput("pvalPlot", height = "600px")),
+                              #withSpinner(plotOutput("pvalPlot", height = "600px")),
+                              plotOutput("pvalPlot", height = "600px"),
                               verbatimTextOutput("timing"),
                               width = 9
                             )
@@ -140,17 +141,22 @@ ui <- navbarPage("SAR Heterogeneity Detection",
 )  # 
 # --- SERVER 
 server <- function(input, output, session) {
+  
   observeEvent(input$go, {
-    # 1) Load image matrix
+    
+    #
+    output$pvalPlot <- renderPlot({ plot.new() })
+    
+    # 
     if (input$input_type == "sim") {
-      load(file.path("www", input$sim_choice))  # loads Z
+      load(file.path("www", input$sim_choice))  # 
       img_mat <- Z
     } else if (input$input_type == "envi") {
       folder   <- file.path("www", input$envi_choice)
       img_file <- file.path(folder, paste0(input$envi_band, ".img"))
       hdr_file <- file.path(folder, paste0(input$envi_band, ".hdr"))
       img_mat  <- myread.ENVI(img_file, headerfile = hdr_file)
-    } else if (input$input_type == "upload") {
+    } else {
       req(input$upload_img, input$upload_hdr)
       img_mat <- myread.ENVI(input$upload_img$datapath,
                              headerfile = input$upload_hdr$datapath)
